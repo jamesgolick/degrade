@@ -1,6 +1,73 @@
 = degrade
 
-Description goes here.
+Keep track of error rates using redis. Degrade functionality if they're too high.
+
+== Install it
+
+  gem install degrade
+
+== How it works
+
+Setup one instance per feature.
+
+  $redis             = Redis.new
+  $rollout           = Rollout.new($redis) # see http://github.com/jamesgolick/rollout
+  $degrade_cassandra = Degrade.new(@redis, :name             => :cassandra,
+                                           :sample           => 5000,            # optional - 5000 is the default
+                                           :minimum          => 100,             # optional - 100 is the default
+                                           :threshold        => 0.1,             # optional - 0.1 is the default
+                                           :errors           => [StandardError], # optional - [StandardError] is the default
+                                           :failure_strategy => lambda { $rollout.deactivate_all(:cassandra) }
+
+There are a bunch of options here:
+
+  * name: The name of the feature.
+  * sample: We zero the counters every n requests. Define n here.
+  * minimum: What's the minimum number of requests we need to see before we decide that the threshold has been met? Without this, if the first request of a given sample is a failure, we'd be failing the service.
+  * threshold: Percentage of failure requests necessary to trigger a failure.
+  * errors: Which errors should cause us to mark a failures?
+  * failure_strategy: The proc that will get called when the threshold is met. See http://github.com/jamesgolick/rollout if you don't have an existing system for disabling features on the fly.
+  
+The only thing left to do is wrap calls to whatever it is that might fail in a call to perform():
+
+  $degrade_cassandra.perform { $cassandra.get("Timelines", "1/everything") }
+
+Note that degrade doesn't actually handle the degradation for you. You still have to wrap sections of functionality with whatever mechanism you use to disable features (i.e. rollout).
+
+== Driver decorators
+
+Wrapping every call to a service in $degrade.perform() is a hassle and will require a lot of changes to your code. You're better off decorating your driver.
+
+Let's say we had a service called NewsService:
+
+  class NewsService < SomeRPCMechanism
+    def get_news(*args)
+      # ...
+    end
+  end
+
+We'd decorate it like this:
+
+  class NewsServiceWithDegradation
+    def initialize(news_service, degrade)
+      @news_service = news_service
+      @degrade      = degrade
+    end
+
+    def get_news(*args)
+      @degrade.perform { @news_service.get_news(*args) }
+    end
+  end
+
+We're doing this for one of our services and it's working pretty well.
+
+== Known issues / concerns
+
+Making a bunch of requests to services whose drivers are wrapped in this could cause problems if your services / site are extremely high throughput. This could be improved somewhat by adding some randomness to threshold checking and sample resetting so that those things aren't checked every request. The service we're currently using this with runs at about 25 req / s which is a _long_ way before any problems are likely. 
+
+Also, obviously calls to redis add latency to your requests. Make sure you're okay with this.
+
+Don't try to use this on redis itself. If you do, the universe will enter a state of infinite recursion.
 
 == Note on Patches/Pull Requests
  
