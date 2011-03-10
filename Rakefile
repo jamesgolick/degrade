@@ -1,5 +1,8 @@
 require 'rubygems'
 require 'rake'
+require 'bundler'
+
+Bundler.setup
 
 begin
   require 'jeweler'
@@ -10,9 +13,6 @@ begin
     gem.email = "jamesgolick@gmail.com"
     gem.homepage = "http://github.com/jamesgolick/degrade"
     gem.authors = ["James Golick"]
-    gem.add_development_dependency "rspec", "1.2.9"
-    gem.add_development_dependency "bourne", "1.0.0"
-    gem.add_development_dependency "redis", "0.1.0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
@@ -31,8 +31,6 @@ Spec::Rake::SpecTask.new(:rcov) do |spec|
   spec.pattern = 'spec/**/*_spec.rb'
   spec.rcov = true
 end
-
-task :spec => :check_dependencies
 
 task :default => :spec
 
