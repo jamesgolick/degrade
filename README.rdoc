@@ -63,7 +63,7 @@ We're doing this for one of our services and it's working pretty well.
 
 == Known issues / concerns
 
-Making a bunch of requests to services whose drivers are wrapped in this could cause problems if your services / site are extremely high throughput. This could be improved somewhat by adding some randomness to threshold checking and sample resetting so that those things aren't checked every request. The service we're currently using this with runs at about 25 req / s which is a _long_ way before any problems are likely. 
+Making a bunch of requests to services whose drivers are wrapped in this could cause problems if your services / site are extremely high throughput. This could be improved somewhat by adding some randomness to threshold checking and sample resetting so that those things aren't checked every request. The service we're currently using this with runs at about 250 req / s which is a _long_ way before any problems are likely. 
 
 Also, obviously calls to redis add latency to your requests. Make sure you're okay with this.
 
