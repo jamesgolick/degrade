@@ -12,7 +12,7 @@ Setup one instance per feature.
 
   $redis             = Redis.new
   $rollout           = Rollout.new($redis) # see http://github.com/jamesgolick/rollout
-  $degrade_cassandra = Degrade.new(@redis, :name             => :cassandra,
+  $degrade_cassandra = Degrade.new($redis, :name             => :cassandra,
                                            :sample           => 5000,            # optional - 5000 is the default
                                            :minimum          => 100,             # optional - 100 is the default
                                            :threshold        => 0.1,             # optional - 0.1 is the default
