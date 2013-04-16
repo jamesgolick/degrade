@@ -4,14 +4,18 @@ class Degrade
   attr_reader :minimum, :sample, :threshold, :errors, :failure_strategy
   attr_reader :redis
 
+  # Required elements in the options hash:
+  #   :name             - feature name to track status of
+  #   :failure_strategy - a callable object to be invoked when too many errors
+  #                       seen
   def initialize(redis, options)
     @redis            = redis
-    @name             = options[:name]
+    @name             = options.fetch(:name)
     @minimum          = options[:minimum] || 100
     @sample           = options[:sample] || 5000
     @threshold        = options[:threshold] || 0.1
     @errors           = options[:errors] || [StandardError]
-    @failure_strategy = options[:failure_strategy]
+    @failure_strategy = options.fetch(:failure_strategy)
   end
 
   def perform
