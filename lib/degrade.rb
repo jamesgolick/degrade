@@ -59,7 +59,9 @@ class Degrade
       total_requests = requests
       return if total_requests < minimum
 
-      failure_strategy.call if failures / total_requests >= threshold
+      if failures / total_requests >= threshold
+        failure_strategy.call
+      end
     end
 
     def reset_sample
